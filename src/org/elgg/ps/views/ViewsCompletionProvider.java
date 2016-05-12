@@ -19,78 +19,28 @@
  */
 package org.elgg.ps.views;
 
-import com.intellij.codeInsight.completion.*;
-import com.intellij.codeInsight.lookup.LookupElement;
+import com.intellij.codeInsight.completion.CompletionParameters;
+import com.intellij.codeInsight.completion.CompletionProvider;
+import com.intellij.codeInsight.completion.CompletionResultSet;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VirtualFile;
-import com.intellij.openapi.vfs.VirtualFileVisitor;
 import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiReference;
 import com.intellij.util.ProcessingContext;
-import com.jetbrains.php.lang.psi.elements.Function;
+import com.jetbrains.php.lang.psi.elements.FunctionReference;
 import org.elgg.ps.Util;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.elgg.ps.Util.viewsPath;
+import static org.elgg.ps.views.ViewsUtil.*;
 
 public class ViewsCompletionProvider extends CompletionProvider<CompletionParameters> {
-	/**
-	 * A list of function name => view argument index
-	 */
-	protected Map<String, List<Integer>> viewFuncs = new HashMap<String, List<Integer>>() {{
-		put("elgg_view", new ArrayList<Integer>() {{
-			add(0);
-		}});
-		put("elgg_extend_view", new ArrayList<Integer>() {{
-			add(0);
-			add(1);
-		}});
-		put("elgg_unextend_view", new ArrayList<Integer>() {{
-			add(0);
-			add(1);
-		}});
-		put("elgg_view_exists", new ArrayList<Integer>() {{
-			add(0);
-		}});
-		put("elgg_view_layout", new ArrayList<Integer>() {{
-			add(0);
-		}});
-		put("elgg_view_form", new ArrayList<Integer>() {{
-			add(0);
-		}});
-
-		// 2.X
-		put("elgg_view_resource", new ArrayList<Integer>() {{
-			add(0);
-		}});
-		put("elgg_view_input", new ArrayList<Integer>() {{
-			add(0);
-		}});
-	}};
-
-	protected Map<String, String> stripPrefixes = new HashMap<String, String>() {{
-		put("elgg_view_layout", "page/layouts/");
-		put("elgg_view_form", "forms/");
-		put("elgg_view_resource", "resources/");
-		put("elgg_view_input", "input/");
-	}};
-
-	private static final InsertHandler<LookupElement> INSERT_HANDLER = new InsertHandler<LookupElement>() {
-		@Override
-		public void handleInsert(InsertionContext context, LookupElement item) {
-			context.getEditor().getCaretModel().moveCaretRelatively(1, 0, false, false, true);
-		}
-	};
-
-	protected boolean isViewFunc(@NotNull Function func) {
+	protected boolean isViewFunc(@NotNull FunctionReference func) {
 		return viewFuncs.containsKey(func.getName());
 	}
 
-	protected boolean isInViewParam(Function func, PsiElement param) {
+	protected boolean isInViewParam(FunctionReference func, PsiElement param) {
 		Integer i = Util.getParameterIndex(param);
 
 		return viewFuncs.get(func.getName()).contains(i);
@@ -99,24 +49,12 @@ public class ViewsCompletionProvider extends CompletionProvider<CompletionParame
 	@Override
 	public void addCompletions(@NotNull CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet result) {
 		final Project project = parameters.getPosition().getProject();
+		final FunctionReference function = Util.getFuncRef(parameters.getPosition());
 
-		// I'm sure there's a way to do this within the capture, but haven't figured it out yet
-		PsiElement func = parameters.getPosition().getParent().getParent().getParent();
-		if (!(func instanceof PsiElement)) {
+		if (function == null) {
 			return;
 		}
 
-		PsiReference funcRef = func.getReference();
-		if (!(funcRef instanceof PsiReference)) {
-			return;
-		}
-
-		PsiElement resolvedReference = func.getReference().resolve();
-		if (!(resolvedReference instanceof Function)) {
-			return;
-		}
-
-		Function function = (Function)resolvedReference;
 		if (!isViewFunc(function)) {
 			return;
 		}
@@ -127,8 +65,8 @@ public class ViewsCompletionProvider extends CompletionProvider<CompletionParame
 
 		List<String> views = getAllViews(project);
 
-		if (stripPrefixes.containsKey(function.getName())) {
-			String strip = stripPrefixes.get(function.getName());
+		if (viewPrefixes.containsKey(function.getName())) {
+			String strip = viewPrefixes.get(function.getName());
 
 			views.removeIf(s -> !s.contains(strip));
 
@@ -142,72 +80,8 @@ public class ViewsCompletionProvider extends CompletionProvider<CompletionParame
 		}
 
 		for (String view : views) {
-			LookupElementBuilder builder = LookupElementBuilder.create(view)
-			                                                   .withCaseSensitivity(false)
-			                                                   .withPresentableText(view)
-			                                                   .withInsertHandler(INSERT_HANDLER);
+			LookupElementBuilder builder = LookupElementBuilder.create(view).withCaseSensitivity(false).withPresentableText(view);
 			result.addElement(builder);
-		}
-	}
-
-	public List<String> getAllViews(Project project) {
-		List<String> views = new ArrayList<>();
-		visitAllViewFiles(project, views, false);
-
-		return views;
-	}
-
-	public List<VirtualFile> getAllViewFiles(Project project) {
-		List<VirtualFile> views = new ArrayList<>();
-		visitAllViewFiles(project, views, true);
-
-		return views;
-	}
-
-	public void visitAllViewFiles(Project project, List viewFiles, Boolean asFile) {
-		//final List<VirtualFile> viewFiles = new ArrayList<>();
-		final VirtualFile baseDir = project.getBaseDir();
-		final List<VirtualFile> viewDirs = new ArrayList<>();
-
-		// add core views dir
-		VirtualFile rootViews = baseDir.findFileByRelativePath(viewsPath);
-		viewDirs.add(rootViews);
-
-		// add mod views dirs
-		for (VirtualFile mod : Util.getMods(project)) {
-			VirtualFile viewDir = mod.findFileByRelativePath(viewsPath);
-
-			if (viewDir == null) {
-				continue;
-			}
-
-			viewDirs.add(viewDir);
-		}
-
-		// go through each view dir finding view files
-		for (VirtualFile viewDir : viewDirs) {
-			if (viewDir == null) {
-				continue;
-			}
-
-			for (VirtualFile viewType : viewDir.getChildren()) {
-				VfsUtil.visitChildrenRecursively(viewType, new VirtualFileVisitor() {
-					@Override
-					public boolean visitFile(@NotNull VirtualFile file) {
-						if (file != null && !file.isDirectory()) {
-							if (asFile) {
-								viewFiles.add(file);
-							} else {
-								viewFiles.add(file.getPath().replace(viewType.getPath() + "/", "")
-								                  // extensions other than php are valid
-								                  .replace(".php", ""));
-							}
-						}
-
-						return super.visitFile(file);
-					}
-				});
-			}
 		}
 	}
 }

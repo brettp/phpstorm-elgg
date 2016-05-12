@@ -23,6 +23,9 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
+import com.jetbrains.php.lang.psi.elements.Function;
+import com.jetbrains.php.lang.psi.elements.FunctionReference;
+import com.jetbrains.php.lang.psi.elements.ParameterList;
 import com.jetbrains.php.lang.psi.elements.impl.ParameterListImpl;
 import com.jetbrains.php.lang.psi.elements.impl.StringLiteralExpressionImpl;
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +40,38 @@ public class Util {
 	public static String viewsPath = "views";
 	public static String modsPaths = "mod";
 	public static String actionsPaths = "actions";
+
+	public static Boolean inFuncParam(PsiElement e, String funcName) {
+		PsiElement parent = e;
+
+		// first need to find param list, then need to find func
+		while (parent instanceof PsiElement) {
+			if (parent instanceof ParameterList) {
+				FunctionReference f = getFuncRef(e);
+				if (f != null) {
+					return (((Function)f.resolve()).getName().equals(funcName));
+				}
+			}
+
+			parent = parent.getParent();
+		}
+
+		return false;
+	}
+
+	@Nullable
+	public static FunctionReference getFuncRef(PsiElement e) {
+		PsiElement parent = e;
+		while (parent instanceof PsiElement) {
+			if (parent instanceof FunctionReference) {
+				return (FunctionReference)parent;
+			}
+
+			parent = parent.getParent();
+		}
+
+		return null;
+	}
 
 
 	@Nullable
