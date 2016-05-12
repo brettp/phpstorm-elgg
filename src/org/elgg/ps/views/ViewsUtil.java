@@ -23,6 +23,8 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileVisitor;
+import com.intellij.psi.PsiElement;
+import com.jetbrains.php.lang.psi.elements.FunctionReference;
 import org.elgg.ps.Util;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,6 +33,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.elgg.ps.Util.getFuncRef;
 import static org.elgg.ps.Util.viewsPath;
 
 public class ViewsUtil {
@@ -82,21 +85,43 @@ public class ViewsUtil {
 		return views;
 	}
 
-	public static  List<VirtualFile> getAllViewFiles(Project project) {
+	public static List<VirtualFile> getAllViewFiles(Project project) {
 		List<VirtualFile> views = new ArrayList<>();
 		visitAllViewFiles(project, views, true);
 
 		return views;
 	}
 
-	public static  void visitAllViewFiles(Project project, List viewFiles, Boolean asFile) {
-		//final List<VirtualFile> viewFiles = new ArrayList<>();
+	public static boolean isViewFunc(@NotNull FunctionReference func) {
+		return viewFuncs.containsKey(func.getName());
+	}
+
+	public static boolean isInViewParam(PsiElement param) {
+		FunctionReference func = getFuncRef(param);
+		if (func == null || !isViewFunc(func)) {
+			return false;
+		}
+
+		Integer i = Util.getParameterIndex(param);
+
+		return viewFuncs.get(func.getName()).contains(i);
+	}
+
+	public static void visitAllViewFiles(Project project, List viewFiles, Boolean asFile) {
 		final VirtualFile baseDir = project.getBaseDir();
 		final List<VirtualFile> viewDirs = new ArrayList<>();
 
 		// add core views dir
 		VirtualFile rootViews = baseDir.findFileByRelativePath(viewsPath);
 		viewDirs.add(rootViews);
+
+		// add vendor/elgg/elgg views
+		VirtualFile vendorViews = baseDir.findFileByRelativePath("vendor/elgg/elgg/" + viewsPath);
+		viewDirs.add(vendorViews);
+
+		// add ./elgg/views
+		VirtualFile subDirViews = baseDir.findFileByRelativePath("elgg/" + viewsPath);
+		viewDirs.add(subDirViews);
 
 		// add mod views dirs
 		for (VirtualFile mod : Util.getMods(project)) {

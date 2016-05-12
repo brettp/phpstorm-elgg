@@ -34,6 +34,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
+import static org.elgg.ps.views.ViewsUtil.isInViewParam;
 import static org.elgg.ps.views.ViewsUtil.viewPrefixes;
 
 public class ViewsGoToDeclarationHandler implements GotoDeclarationHandler {
@@ -49,6 +50,10 @@ public class ViewsGoToDeclarationHandler implements GotoDeclarationHandler {
 		FunctionReference function = Util.getFuncRef(e);
 
 		if (function == null) {
+			return psiFiles.toArray(new PsiFile[psiFiles.size()]);
+		}
+
+		if (!isInViewParam(e)) {
 			return psiFiles.toArray(new PsiFile[psiFiles.size()]);
 		}
 

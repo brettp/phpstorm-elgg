@@ -5,13 +5,16 @@
   <vendor email="brett@elgg.org" url="http://elgg.org">Elgg</vendor>
 
   <description><![CDATA[
-      Enter short description for your plugin here.<br>
-      <em>most HTML tags may be used</em>
+      Adds support for Elgg.<br /><br />
+      Features include:<br />
+      <ul>
+        <li>View completion</li>
+        <li>Goto view declaration</li>
+      </ul>
     ]]></description>
 
   <change-notes><![CDATA[
-      Add change notes here.<br>
-      <em>most HTML tags may be used</em>
+      Initial release.
     ]]>
   </change-notes>
 

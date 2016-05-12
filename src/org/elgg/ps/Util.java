@@ -26,7 +26,7 @@ import com.intellij.psi.PsiElement;
 import com.jetbrains.php.lang.psi.elements.Function;
 import com.jetbrains.php.lang.psi.elements.FunctionReference;
 import com.jetbrains.php.lang.psi.elements.ParameterList;
-import com.jetbrains.php.lang.psi.elements.impl.ParameterListImpl;
+import com.jetbrains.php.lang.psi.elements.StringLiteralExpression;
 import com.jetbrains.php.lang.psi.elements.impl.StringLiteralExpressionImpl;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,13 +73,32 @@ public class Util {
 		return null;
 	}
 
+	@Nullable
+	public static PsiElement[] getFuncParams(PsiElement e) {
+		FunctionReference f = getFuncRef(e);
+
+		if (f instanceof FunctionReference) {
+			return f.getParameters();
+		}
+
+		return null;
+	}
+
 
 	@Nullable
 	public static Integer getParameterIndex(PsiElement param) {
 		int i;
-		PsiElement[] params = ((ParameterListImpl)param.getParent().getParent()).getParameters();
+		PsiElement[] params = getFuncParams(param);
+
+		if (params == null) {
+			return null;
+		}
+
 		String curParam = param.getText();
 		for (i = 0; i < params.length; i++) {
+			if (!(params[i] instanceof StringLiteralExpression)) {
+				continue;
+			}
 			if (curParam.equals(((StringLiteralExpressionImpl)params[i]).getContents())) {
 				return i;
 			}

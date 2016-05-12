@@ -24,7 +24,6 @@ import com.intellij.codeInsight.completion.CompletionProvider;
 import com.intellij.codeInsight.completion.CompletionResultSet;
 import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.project.Project;
-import com.intellij.psi.PsiElement;
 import com.intellij.util.ProcessingContext;
 import com.jetbrains.php.lang.psi.elements.FunctionReference;
 import org.elgg.ps.Util;
@@ -36,30 +35,12 @@ import java.util.List;
 import static org.elgg.ps.views.ViewsUtil.*;
 
 public class ViewsCompletionProvider extends CompletionProvider<CompletionParameters> {
-	protected boolean isViewFunc(@NotNull FunctionReference func) {
-		return viewFuncs.containsKey(func.getName());
-	}
-
-	protected boolean isInViewParam(FunctionReference func, PsiElement param) {
-		Integer i = Util.getParameterIndex(param);
-
-		return viewFuncs.get(func.getName()).contains(i);
-	}
-
 	@Override
 	public void addCompletions(@NotNull CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet result) {
 		final Project project = parameters.getPosition().getProject();
-		final FunctionReference function = Util.getFuncRef(parameters.getPosition());
+		FunctionReference function = Util.getFuncRef(parameters.getPosition());
 
-		if (function == null) {
-			return;
-		}
-
-		if (!isViewFunc(function)) {
-			return;
-		}
-
-		if (!isInViewParam(function, parameters.getPosition())) {
+		if (!isInViewParam(parameters.getPosition())) {
 			return;
 		}
 
