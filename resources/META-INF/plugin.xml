@@ -25,12 +25,13 @@
 
   <extensions defaultExtensionNs="com.intellij">
     <completion.contributor language="PHP" implementationClass="org.elgg.ps.views.ViewsCompletionContributor"/>
+    <gotoDeclarationHandler implementation="org.elgg.ps.views.ViewsGoToDeclarationHandler"/>
 
     <!--<php.typeProvider2 implementation="org.elgg.ps.views.TypeProvider"/>-->
 
     <!--<completion.contributor language="PHP" implementationClass="org.elgg.ps.resolve.types.ElggViewTypeProvider"/>-->
 
-    <!--<gotoDeclarationHandler implementation="org.elgg.ps.handler.HandlerGoToDeclarationHandler"/>-->
+
   </extensions>
 
   <actions>

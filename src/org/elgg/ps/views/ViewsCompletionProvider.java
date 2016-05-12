@@ -33,10 +33,7 @@ import com.jetbrains.php.lang.psi.elements.Function;
 import org.elgg.ps.Util;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static org.elgg.ps.Util.viewsPath;
 
@@ -59,6 +56,27 @@ public class ViewsCompletionProvider extends CompletionProvider<CompletionParame
 		put("elgg_view_exists", new ArrayList<Integer>() {{
 			add(0);
 		}});
+		put("elgg_view_layout", new ArrayList<Integer>() {{
+			add(0);
+		}});
+		put("elgg_view_form", new ArrayList<Integer>() {{
+			add(0);
+		}});
+
+		// 2.X
+		put("elgg_view_resource", new ArrayList<Integer>() {{
+			add(0);
+		}});
+		put("elgg_view_input", new ArrayList<Integer>() {{
+			add(0);
+		}});
+	}};
+
+	protected Map<String, String> stripPrefixes = new HashMap<String, String>() {{
+		put("elgg_view_layout", "page/layouts/");
+		put("elgg_view_form", "forms/");
+		put("elgg_view_resource", "resources/");
+		put("elgg_view_input", "input/");
 	}};
 
 	private static final InsertHandler<LookupElement> INSERT_HANDLER = new InsertHandler<LookupElement>() {
@@ -109,6 +127,20 @@ public class ViewsCompletionProvider extends CompletionProvider<CompletionParame
 
 		List<String> views = getAllViews(project);
 
+		if (stripPrefixes.containsKey(function.getName())) {
+			String strip = stripPrefixes.get(function.getName());
+
+			views.removeIf(s -> !s.contains(strip));
+
+			// @todo can you use an interator?
+			List<String> newViews = new ArrayList<>();
+			for (String view : views) {
+				newViews.add(view.replaceFirst(strip, ""));
+			}
+
+			views = newViews;
+		}
+
 		for (String view : views) {
 			LookupElementBuilder builder = LookupElementBuilder.create(view)
 			                                                   .withCaseSensitivity(false)
@@ -119,7 +151,21 @@ public class ViewsCompletionProvider extends CompletionProvider<CompletionParame
 	}
 
 	public List<String> getAllViews(Project project) {
-		final List<String> viewFiles = new ArrayList<>();
+		List<String> views = new ArrayList<>();
+		visitAllViewFiles(project, views, false);
+
+		return views;
+	}
+
+	public List<VirtualFile> getAllViewFiles(Project project) {
+		List<VirtualFile> views = new ArrayList<>();
+		visitAllViewFiles(project, views, true);
+
+		return views;
+	}
+
+	public void visitAllViewFiles(Project project, List viewFiles, Boolean asFile) {
+		//final List<VirtualFile> viewFiles = new ArrayList<>();
 		final VirtualFile baseDir = project.getBaseDir();
 		final List<VirtualFile> viewDirs = new ArrayList<>();
 
@@ -145,22 +191,23 @@ public class ViewsCompletionProvider extends CompletionProvider<CompletionParame
 			}
 
 			for (VirtualFile viewType : viewDir.getChildren()) {
-
 				VfsUtil.visitChildrenRecursively(viewType, new VirtualFileVisitor() {
 					@Override
 					public boolean visitFile(@NotNull VirtualFile file) {
 						if (file != null && !file.isDirectory()) {
-
-							viewFiles.add(file.getPath().replace(viewType.getPath() + "/", "")
-							                  // extensions other than php are valid
-							                  .replace(".php", ""));
+							if (asFile) {
+								viewFiles.add(file);
+							} else {
+								viewFiles.add(file.getPath().replace(viewType.getPath() + "/", "")
+								                  // extensions other than php are valid
+								                  .replace(".php", ""));
+							}
 						}
+
 						return super.visitFile(file);
 					}
 				});
 			}
 		}
-
-		return viewFiles;
 	}
 }

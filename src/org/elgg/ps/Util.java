@@ -35,7 +35,8 @@ public class Util {
 
 	public static String dataDir = "";
 	public static String viewsPath = "views";
-	public static String modsPaths = "/mod";
+	public static String modsPaths = "mod";
+	public static String actionsPaths = "actions";
 
 
 	@Nullable
