@@ -39,9 +39,13 @@
                          parentId="reference.webide.settings.project.settings.php"
                          nonDefaultProject="true"
     />
-
-
   </extensions>
+
+  <project-components>
+    <component>
+      <implementation-class>org.elgg.ps.ElggProjectComponent</implementation-class>
+    </component>
+  </project-components>
 
   <actions>
     <!-- Add your actions here -->

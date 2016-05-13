@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 @State(
  name = "ElggPluginSettings",
  storages = {@Storage(id = "default", file = StoragePathMacros.WORKSPACE_FILE),
-  @Storage(id = "dir", file = StoragePathMacros.WORKSPACE_FILE + "/symfony2.xml", scheme = StorageScheme.DIRECTORY_BASED)})
+  @Storage(id = "dir", file = StoragePathMacros.WORKSPACE_FILE + "/elgg.xml", scheme = StorageScheme.DIRECTORY_BASED)})
 
 public class Settings implements PersistentStateComponent<Settings> {
 	public boolean pluginEnabled = false;
