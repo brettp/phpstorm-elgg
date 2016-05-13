@@ -30,9 +30,15 @@
     <completion.contributor language="PHP" implementationClass="org.elgg.ps.views.ViewsCompletionContributor"/>
     <gotoDeclarationHandler implementation="org.elgg.ps.views.ViewsGoToDeclarationHandler"/>
 
-    <!--<php.typeProvider2 implementation="org.elgg.ps.views.TypeProvider"/>-->
 
-    <!--<completion.contributor language="PHP" implementationClass="org.elgg.ps.resolve.types.ElggViewTypeProvider"/>-->
+    <projectService serviceImplementation="org.elgg.ps.Settings"/>
+
+    <projectConfigurable instance="org.elgg.ps.SettingsForm"
+                         displayName="Elgg"
+                         id="elgg.SettingsForm"
+                         parentId="reference.webide.settings.project.settings.php"
+                         nonDefaultProject="true"
+    />
 
 
   </extensions>

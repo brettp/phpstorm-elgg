@@ -15,9 +15,10 @@ import org.jetbrains.annotations.Nullable;
 public class Settings implements PersistentStateComponent<Settings> {
 	public boolean pluginEnabled = false;
 
+	public String elggDir = "";
+	public String modDir = "";
 	public String dataDir = "";
-	public String viewsPath = "/views";
-	public String[] modsPaths = {"/mod", "/vendor/elgg/elgg/mod"};
+	public String viewsRelativePath = "/views";
 
 	public boolean gotoHandlers = true;
 	public boolean gotoViews = true;
@@ -33,7 +34,6 @@ public class Settings implements PersistentStateComponent<Settings> {
 
 	public static Settings getInstance(Project project) {
 		Settings settings = ServiceManager.getService(project, Settings.class);
-
 		settings.project = project;
 
 		return settings;

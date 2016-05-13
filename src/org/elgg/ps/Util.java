@@ -118,17 +118,17 @@ public class Util {
 	 */
 	public static List<VirtualFile> getMods(Project project) {
 		final List<VirtualFile> mods = new ArrayList<>();
-		//final Settings settings = Settings.getInstance(project);
+		final Settings s = Settings.getInstance(project);
 
 		// only look at the mods dir for now.
 		// eventually will need to check composer
-		final VirtualFile modsDir = project.getBaseDir().findFileByRelativePath(modsPaths);
+		final VirtualFile modDir = VfsUtil.findRelativeFile(s.modDir, project.getBaseDir());
 
-		if (modsDir == null) {
+		if (modDir == null) {
 			return mods;
 		}
 
-		for (VirtualFile mod : modsDir.getChildren()) {
+		for (VirtualFile mod : modDir.getChildren()) {
 			if (!mod.isDirectory()) {
 				continue;
 			}

@@ -25,6 +25,7 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileVisitor;
 import com.intellij.psi.PsiElement;
 import com.jetbrains.php.lang.psi.elements.FunctionReference;
+import org.elgg.ps.Settings;
 import org.elgg.ps.Util;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +35,6 @@ import java.util.List;
 import java.util.Map;
 
 import static org.elgg.ps.Util.getFuncRef;
-import static org.elgg.ps.Util.viewsPath;
 
 public class ViewsUtil {
 	/**
@@ -108,24 +108,18 @@ public class ViewsUtil {
 	}
 
 	public static void visitAllViewFiles(Project project, List viewFiles, Boolean asFile) {
-		final VirtualFile baseDir = project.getBaseDir();
+		final Settings s = Settings.getInstance(project);
+		final VirtualFile projectDir = project.getBaseDir();
+
 		final List<VirtualFile> viewDirs = new ArrayList<>();
 
 		// add core views dir
-		VirtualFile rootViews = baseDir.findFileByRelativePath(viewsPath);
+		final VirtualFile rootViews = VfsUtil.findRelativeFile(s.elggDir + "/" + s.viewsRelativePath, projectDir);
 		viewDirs.add(rootViews);
-
-		// add vendor/elgg/elgg views
-		VirtualFile vendorViews = baseDir.findFileByRelativePath("vendor/elgg/elgg/" + viewsPath);
-		viewDirs.add(vendorViews);
-
-		// add ./elgg/views
-		VirtualFile subDirViews = baseDir.findFileByRelativePath("elgg/" + viewsPath);
-		viewDirs.add(subDirViews);
 
 		// add mod views dirs
 		for (VirtualFile mod : Util.getMods(project)) {
-			VirtualFile viewDir = mod.findFileByRelativePath(viewsPath);
+			VirtualFile viewDir = mod.findFileByRelativePath(s.viewsRelativePath);
 
 			if (viewDir == null) {
 				continue;
