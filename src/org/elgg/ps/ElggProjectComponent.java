@@ -58,9 +58,11 @@ public class ElggProjectComponent implements ProjectComponent {
 			return;
 		}
 
-		if (VfsUtil.findRelativeFile(this.project.getBaseDir(), "vendor", "elgg", "elgg") != null ||
-		    VfsUtil.findRelativeFile(this.project.getBaseDir(), "engine", "start.php") != null) {
+		if (VfsUtil.findRelativeFile(this.project.getBaseDir(), "engine", "start.php") != null ||
+		    VfsUtil.findRelativeFile(this.project.getBaseDir(), "engine", "classes", "Elgg", "Application.php") != null ||
 
+		    // composer install
+		    VfsUtil.findRelativeFile(this.project.getBaseDir(), "vendor", "elgg", "elgg") != null) {
 			notifyEnableMessage();
 		}
 	}
@@ -106,30 +108,43 @@ public class ElggProjectComponent implements ProjectComponent {
 		Settings s = Settings.getInstance(project);
 		String error = "";
 		// find root
+		VirtualFile start = VfsUtil.findRelativeFile(this.project.getBaseDir(), "engine", "start.php");
+		VirtualFile app = VfsUtil.findRelativeFile(this.project.getBaseDir(), "engine", "classes", "Elgg", "Application.php");
 		VirtualFile composer = VfsUtil.findRelativeFile(this.project.getBaseDir(), "vendor", "elgg", "elgg");
-		VirtualFile root = VfsUtil.findRelativeFile(this.project.getBaseDir(), "engine", "start.php");
+		VirtualFile installDir = null;
 
-		if (composer != null) {
-			s.elggDir = composer.getPath();
+		if (start != null) {
+			// elgg/engine/start.php
+			installDir = start.getParent().getParent();
 		}
-		else if (root != null) {
-			s.elggDir = project.getBasePath();
+		else if (app != null) {
+			// elgg/engine/classes/Elgg/Application.php
+			installDir = app.getParent().getParent().getParent().getParent();
+		}
+		else if (composer != null) {
+			// vendor/elgg/elgg/
+			installDir = composer;
 		}
 		else {
 			error = "installation directory";
 		}
 
 		// find mods
-		VirtualFile rootMods = VfsUtil.findRelativeFile(this.project.getBaseDir(), "mod");
-		VirtualFile composerMods = VfsUtil.findRelativeFile(this.project.getBaseDir(), "vendor", "elgg", "elgg", "mod");
-		if (rootMods != null) {
-			s.modDir = rootMods.getPath();
-		}
-		else if (composerMods != null) {
-			s.modDir = composerMods.getPath();
-		}
-		else {
-			error = "mod directory";
+		if (installDir != null) {
+			s.elggDir = installDir.getPath();
+
+			VirtualFile rootMods = VfsUtil.findRelativeFile(this.project.getBaseDir(), "mod");
+			VirtualFile installedMods = VfsUtil.findRelativeFile(installDir, "mod");
+
+			if (rootMods != null) {
+				s.modDir = rootMods.getPath();
+			}
+			else if (installedMods != null) {
+				s.modDir = installedMods.getPath();
+			}
+			else {
+				error = "mod directory";
+			}
 		}
 
 		if (error != "") {
