@@ -22,12 +22,14 @@ package org.elgg.ps;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.openapi.vfs.VirtualFileVisitor;
 import com.intellij.psi.PsiElement;
 import com.jetbrains.php.lang.psi.elements.Function;
 import com.jetbrains.php.lang.psi.elements.FunctionReference;
 import com.jetbrains.php.lang.psi.elements.ParameterList;
 import com.jetbrains.php.lang.psi.elements.StringLiteralExpression;
 import com.jetbrains.php.lang.psi.elements.impl.StringLiteralExpressionImpl;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -142,5 +144,76 @@ public class Util {
 		}
 
 		return mods;
+	}
+
+	/**
+	 * Visit all files in root and mods with a common structure (like actions and views)
+	 *
+	 * @param project
+	 * @param files
+	 * @param suffix
+	 * @param asFile
+	 */
+	public static void visitCommonFiles(Project project, List files) {
+		visitCommonFiles(project, files, null, null);
+	}
+
+	public static void visitCommonFiles(Project project, String suffix, VirtualFileVisitor visitor) {
+		visitCommonFiles(project, null, suffix, visitor);
+	}
+
+	public static void visitCommonFiles(Project project, VirtualFileVisitor visitor) {
+		visitCommonFiles(project, null, null, visitor);
+	}
+
+	public static void visitCommonFiles(Project project, List files, String suffix) {
+		visitCommonFiles(project, files, suffix, null);
+	}
+
+	protected static void visitCommonFiles(Project project, @Nullable List files, @Nullable String suffix, @Nullable VirtualFileVisitor visitor) {
+		final Settings s = Settings.getInstance(project);
+		final VirtualFile projectDir = project.getBaseDir();
+
+		final List<VirtualFile> dirs = new ArrayList<>();
+
+		// add core views dir
+		final VirtualFile rootFiles = VfsUtil.findRelativeFile(s.elggDir + "/" + suffix, projectDir);
+		dirs.add(rootFiles);
+
+		// add mod views dirs
+		for (VirtualFile mod : getMods(project)) {
+			VirtualFile modDir = mod.findFileByRelativePath(suffix);
+
+			if (modDir == null) {
+				continue;
+			}
+
+			dirs.add(modDir);
+		}
+
+
+		if (visitor == null) {
+			visitor = new VirtualFileVisitor() {
+				@Override
+				public boolean visitFile(@NotNull VirtualFile file) {
+					if (file != null && !file.isDirectory() && files != null) {
+						files.add(file);
+					}
+
+					return super.visitFile(file);
+				}
+			};
+		}
+
+		// go through each view dir finding view files
+		for (VirtualFile dir : dirs) {
+			if (dir == null) {
+				continue;
+			}
+
+			for (VirtualFile viewType : dir.getChildren()) {
+				VfsUtil.visitChildrenRecursively(viewType, visitor);
+			}
+		}
 	}
 }

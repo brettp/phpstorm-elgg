@@ -27,10 +27,6 @@
   <depends>com.intellij.modules.platform</depends>
 
   <extensions defaultExtensionNs="com.intellij">
-    <completion.contributor language="PHP" implementationClass="org.elgg.ps.views.ViewsCompletionContributor"/>
-    <gotoDeclarationHandler implementation="org.elgg.ps.views.ViewsGoToDeclarationHandler"/>
-
-
     <projectService serviceImplementation="org.elgg.ps.Settings"/>
 
     <projectConfigurable instance="org.elgg.ps.SettingsForm"
@@ -39,6 +35,13 @@
                          parentId="reference.webide.settings.project.settings.php"
                          nonDefaultProject="true"
     />
+
+    <!--Views-->
+    <completion.contributor language="PHP" implementationClass="org.elgg.ps.views.ViewsCompletionContributor"/>
+    <gotoDeclarationHandler implementation="org.elgg.ps.views.ViewsGoToDeclarationHandler"/>
+
+    <!--Actions-->
+    <!--<fileBasedIndex implementation="org.elgg.ps.actions.ElggActionRegistrationFileIndex"/>-->
   </extensions>
 
   <project-components>
