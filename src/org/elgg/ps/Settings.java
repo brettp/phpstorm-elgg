@@ -6,11 +6,11 @@ import com.intellij.util.xmlb.XmlSerializerUtil;
 import org.jetbrains.annotations.Nullable;
 
 
-
 @State(
  name = "ElggPluginSettings",
- storages = {@Storage(id = "default", file = StoragePathMacros.WORKSPACE_FILE),
-  @Storage(id = "dir", file = StoragePathMacros.WORKSPACE_FILE + "/elgg.xml", scheme = StorageScheme.DIRECTORY_BASED)})
+ storages = {
+	 @Storage(StoragePathMacros.WORKSPACE_FILE)
+ })
 
 public class Settings implements PersistentStateComponent<Settings> {
 	public boolean pluginEnabled = false;

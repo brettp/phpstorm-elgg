@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>org.elgg.ps</id>
   <name>Elgg support for PHP Storm</name>
-  <version>1.0</version>
+  <version>1.0.1</version>
   <vendor email="brett@elgg.org" url="http://elgg.org">Elgg</vendor>
 
   <description><![CDATA[
